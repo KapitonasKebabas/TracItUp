@@ -45,13 +45,15 @@ class UserLogoutView(generics.GenericAPIView, UserGetPostPermissionMixin):
 class UserCheckTokenView(generics.GenericAPIView, UserGetPostPermissionMixin):
     def post(self, request):
         username = request.data.get('username')
+        print(username)
         user = User.objects.filter(username=username).first()
         token = request.auth
+        print(token)
         token_user = Token.objects.filter(key=token).first().user 
 
         if token_user == user:
             return Response({'response': 'success'})
-
+        
         return Response({'response': 'Invalid token or username'}, status=400)
     
 class UserRegistrationView(NoPermissionMixin, generics.CreateAPIView):
