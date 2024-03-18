@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'cprofile',
-    'authorization'
+    'authorization',
+    'medecine'
 ]
 
 MIDDLEWARE = [
