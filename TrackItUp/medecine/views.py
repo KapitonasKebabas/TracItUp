@@ -27,3 +27,10 @@ class UserMedecineUpdateView(UserGetPostPermissionMixin, generics.UpdateAPIView)
     serializer_class = UserMedecineSerializer
     queryset = UserMedecine.objects.all()
     lookup_field = 'pk'
+
+class UserMedecineCreateView(UserGetPostPermissionMixin, generics.CreateAPIView):
+    serializer_class = UserMedecineSerializer
+    queryset = UserMedecine.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

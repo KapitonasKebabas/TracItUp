@@ -23,7 +23,8 @@ class UserMedecineSerializer(serializers.ModelSerializer):
         ]
 
 class AprovedMedecineSerializer(serializers.ModelSerializer):
-    
+    photo = serializers.SerializerMethodField()
+
     class Meta:
         model = AprovedMedecine
         fields = [
@@ -34,3 +35,13 @@ class AprovedMedecineSerializer(serializers.ModelSerializer):
             'photo',
             'is_aproved'
         ]
+    
+    def get_photo(self, obj):
+        # Open and read the image file
+        print(obj.photo)
+        with open(obj.photo.path, 'rb') as f:
+            image_data = f.read()
+
+        # Encode the image data as base64
+        import base64
+        return base64.b64encode(image_data).decode('utf-8')
