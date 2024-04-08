@@ -59,28 +59,26 @@ class UserCheckTokenView(generics.GenericAPIView, UserGetPostPermissionMixin):
 class UserRegistrationView(NoPermissionMixin, generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
 
-    def perform_create(self, serializer):
-        # This method is fine, but consider moving this decryption logic to the serializer.
-        with open('/etc/config.json') as config_file:
-            config = json.load(config_file)
-
-        encrypted_password = serializer.validated_data.get('password', None)
+    def create(self, request, *args, **kwargs):
+        config = settings.config
+        encrypted_password = request.data.get('password', None)
         key = config['PASS_KEY']
+
+        mutable_data = request.data.copy()
 
         if encrypted_password:
             decrypted_password = decrypt_password(encrypted_password, key)
-            serializer.validated_data['password'] = decrypted_password
+            mutable_data['password'] = decrypted_password
+        else:
+            mutable_data['password'] = ""
 
-        serializer.save()
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=mutable_data)
         if serializer.is_valid():
             self.perform_create(serializer)
             return Response({'response': 'User registered successfully!'}, status=status.HTTP_201_CREATED)
         else:
             return Response({'response': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        
+
 class UserProfileView(generics.RetrieveAPIView, UserGetPostPermissionMixin):
     serializer_class = UserProfileSerializer
     queryset = User.objects.all()
