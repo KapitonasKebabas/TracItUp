@@ -4,10 +4,12 @@ from django.shortcuts       import get_object_or_404
 
 from cprofile.models import CustomUser as User
 
-from rest_framework.authtoken.views     import ObtainAuthToken
-from rest_framework.authtoken.models    import Token
+from rest_framework_simplejwt.views     import TokenViewBase, TokenObtainPairView
+from rest_framework_simplejwt.tokens    import RefreshToken
 from rest_framework                     import generics, status
 from rest_framework.response            import Response
+from rest_framework.authtoken.models    import Token
+
 
 from TrackItUp import settings
 
@@ -18,7 +20,7 @@ from .serializers   import UserRegistrationSerializer, UserProfileSerializer
 import json
 
 # Create your views here.
-class CustomObtainAuthToken(ObtainAuthToken):
+class CustomObtainAuthToken(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
 
         config = settings.config
@@ -30,17 +32,22 @@ class CustomObtainAuthToken(ObtainAuthToken):
             request.data._mutable = True
             decrypted_password = decrypt_password(encrypted_password, key)
             request.data['password'] = decrypted_password
+        return super().post(request, *args, **kwargs)
 
         return super().post(request, *args, **kwargs)
     
-class UserLogoutView(generics.GenericAPIView, UserGetPostPermissionMixin):
+class UserLogoutView(TokenViewBase, UserGetPostPermissionMixin):
     def post(self, request):
-        user = User.objects.get(username=request.user)
-        Token.objects.filter(user=user).delete()
-
-        logout(request)
-
-        return Response({'success': 'Logged Out'})
+        refresh_token = request.data.get('refresh')
+        try:
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response("Error", status=status.HTTP_400_BAD_REQUEST)
     
 class UserCheckTokenView(generics.GenericAPIView, UserGetPostPermissionMixin):
     def post(self, request):

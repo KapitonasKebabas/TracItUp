@@ -1,11 +1,11 @@
 
 from rest_framework import permissions
 from .permissions import  IsStaffEditorPermission, IsUserGetPermission, IsUserPostPermission
-from rest_framework import authentication
+from rest_framework_simplejwt.authentication import JWTAuthentication as authentication
 
 class StaffEditorPermissionMixin():
     authentication_classes = [
-        authentication.TokenAuthentication
+        authentication
     ]
     permission_classes = [
         permissions.IsAdminUser,
@@ -14,7 +14,7 @@ class StaffEditorPermissionMixin():
 
 class UserGetPostPermissionMixin():
     authentication_classes = [
-        authentication.TokenAuthentication
+        authentication
     ]
     permission_classes = [
         IsUserPostPermission,
