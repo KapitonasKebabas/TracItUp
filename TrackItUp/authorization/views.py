@@ -22,10 +22,11 @@ import json
 # Create your views here.
 class CustomObtainAuthToken(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
-
+        """
         config = settings.config
 
         encrypted_password = request.data.get('password', None)
+
         key = config['PASS_KEY'] # Replace with your encryption key
 
         if encrypted_password:
@@ -33,7 +34,7 @@ class CustomObtainAuthToken(TokenObtainPairView):
             decrypted_password = decrypt_password(encrypted_password, key)
             request.data['password'] = decrypted_password
         return super().post(request, *args, **kwargs)
-
+        """
         return super().post(request, *args, **kwargs)
     
 class UserLogoutView(TokenViewBase, UserGetPostPermissionMixin):
@@ -67,19 +68,21 @@ class UserRegistrationView(NoPermissionMixin, generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
 
     def create(self, request, *args, **kwargs):
-        config = settings.config
+        """config = settings.config
         encrypted_password = request.data.get('password', None)
         key = config['PASS_KEY']
 
         mutable_data = request.data.copy()
 
+        #print(encrypted_password)
         if encrypted_password:
             decrypted_password = decrypt_password(encrypted_password, key)
             mutable_data['password'] = decrypted_password
         else:
             mutable_data['password'] = ""
-
-        serializer = self.get_serializer(data=mutable_data)
+        #print(encrypted_password)
+        serializer = self.get_serializer(data=mutable_data)"""
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             self.perform_create(serializer)
             return Response({'response': 'User registered successfully!'}, status=status.HTTP_201_CREATED)
