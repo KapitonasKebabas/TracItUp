@@ -23,7 +23,7 @@ class UserMedecine(models.Model):
     shared_reserved_qty = models.IntegerField(default=0)
 
     def __str__(self):        
-        return f"{self.user}: {self.medecine.name}"
+        return f"{self.pk} - {self.user}: {self.medecine.name}"
     
 class OrderStatus(models.Model):
     name        = models.CharField(max_length=120, blank=False, null=False)

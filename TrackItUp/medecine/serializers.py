@@ -78,25 +78,65 @@ class OrderStatusesSerializer(serializers.ModelSerializer):
 
 class OrdersSerializer(serializers.ModelSerializer):
     status                = serializers.PrimaryKeyRelatedField(queryset=OrderStatus.objects.all())
+    aproved_medecine      = serializers.CharField(source='user_medicine.medecine.pk', read_only=True)
+    medecine              = serializers.CharField(source='user_medicine.pk', read_only=True)
+    medecine_name         = serializers.CharField(source='user_medicine.medecine.name', read_only=True)
     status_name           = serializers.CharField(source='status.name', read_only=True)
     status_helptext       = serializers.CharField(source='status.helptext', read_only=True) 
-    user_seller_id        = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='user_seller')
-    user_seller_name      = serializers.CharField(source='user_seller.username', read_only=True)
-    user_buyer_id         = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='user_buyer')
-    user_buyer_name       = serializers.CharField(source='user_buyer.username', read_only=True)
+    user_seller_pk        = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='user_seller')
+    user_seller_username      = serializers.CharField(source='user_seller.username', read_only=True)
+    user_buyer_pk         = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='user_buyer')
+    user_buyer_username       = serializers.CharField(source='user_buyer.username', read_only=True)
     user_medicine_pk      = serializers.PrimaryKeyRelatedField(queryset=UserMedecine.objects.all(), source='user_medicine')
 
     class Meta:
         model = Orders
         fields = [
             'pk',
-            'user_seller_id',
-            'user_seller_name',
-            'user_buyer_id',
-            'user_buyer_name',
+            'aproved_medecine',
+            'medecine',
+            'medecine_name',
+            'user_seller_pk',
+            'user_seller_username',
+            'user_buyer_pk',
+            'user_buyer_username',
             'user_medicine_pk',
             'qty',
             'status',
             'status_name',
             'status_helptext'
         ]
+
+    def update(self, instance, validated_data):
+        status = validated_data.get('status')
+        qty = validated_data.get('qty')
+        medecine = validated_data.get('user_medicine')
+
+        if status.pk == 1: #Atsaukta
+            medecine.shared_reserved_qty -= qty
+            medecine.shared_qty += qty
+            pass
+        elif status.pk == 2: #Baigta
+            medecine.shared_reserved_qty -= qty
+            pass
+        elif status.pk == 3: #Vykdoma
+            medecine.shared_reserved_qty += qty
+            medecine.shared_qty -= qty
+            pass
+        
+        medecine.save()
+
+        instance = super().update(instance, validated_data)
+
+        return instance
+    
+    def create(self, validated_data):
+        qty = validated_data.get('qty')
+        medecine = validated_data.get('user_medicine')
+
+        medecine.shared_reserved_qty += qty
+        medecine.shared_qty -= qty
+        
+        medecine.save()
+        
+        return Orders.objects.create(**validated_data)

@@ -41,7 +41,7 @@ class OrdersCreateView(UserGetPostPermissionMixin, generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         json_payload = request.data
-        json_payload['user_buyer_id'] = request.user.pk
+        json_payload['user_buyer_pk'] = request.user.pk
 
         serializer = self.get_serializer(data=json_payload)
         if serializer.is_valid():
